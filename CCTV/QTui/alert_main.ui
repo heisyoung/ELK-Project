@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>388</width>
-    <height>287</height>
+    <width>386</width>
+    <height>204</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -104,17 +104,17 @@
      </property>
     </widget>
    </widget>
-   <widget class="QPushButton" name="pushButton">
+   <widget class="QPushButton" name="log_table">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>130</y>
-      <width>75</width>
-      <height>23</height>
+      <x>10</x>
+      <y>120</y>
+      <width>161</width>
+      <height>41</height>
      </rect>
     </property>
     <property name="text">
-     <string>PushButton</string>
+     <string>Log Table</string>
     </property>
    </widget>
   </widget>
@@ -123,7 +123,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>388</width>
+     <width>386</width>
      <height>21</height>
     </rect>
    </property>
