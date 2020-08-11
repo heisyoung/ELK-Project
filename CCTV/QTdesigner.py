@@ -67,27 +67,29 @@ class MyWindow(QMainWindow, form_class):
 
 
     def start(self):
-        self.location = self.cg.setting_location
-        if self.location == "" :
-            self.error()
-
-        try:
-            self.cpt = cv2.VideoCapture(0)
-            _,self.img_o = self.cpt.read()
-            self.img_o = cv2.cvtColor(self.img_o,cv2.COLOR_RGB2GRAY)
-        except:
-            self.error()
-
         self.timer = QTimer()
         self.timer.timeout.connect(self.nextframe)
         self.timer.start(1000/self.fps)
+
+        try:
+            self.location = self.cg.setting_location
+            print(self.location)                        # 값이 안나옴(자료형은 str)
+            self.cpt = cv2.VideoCapture(0)
+            _,self.img_o = self.cpt.read()
+            self.img_o = cv2.cvtColor(self.img_o,cv2.COLOR_RGB2GRAY)
+            print("try test")                           # except문으로 안가짐
+        except:
+            print("try except")
+            self.error()
+
+
 
     def error(self):
         self.imgLabel.setPixmap(QPixmap.fromImage(QImage('end.jpg')))
         self.timer.stop()
 
     def stop(self):
-        self.imgLabel.setPixmap(QPixmap.fromImage(QImage()))
+        self.imgLabel.setPixmap(QPixmap.fromImage(QImage('end.jpg')))
         self.timer.stop()
 
     def nextframe(self):
@@ -137,8 +139,8 @@ class MyWindow(QMainWindow, form_class):
                 self.video.release()
                 self.video = None
                 #센서는 sensor
-    def mklog(self):
 
+    def mklog(self):
         date = datetime.datetime.utcnow().isoformat()
         logdate = datetime.datetime.now().strftime("%y-%m-%d_%H%M%S")
 
