@@ -136,7 +136,7 @@
     <string>새로고침</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label">
+  <widget class="QLabel" name="update_time">
    <property name="geometry">
     <rect>
      <x>20</x>

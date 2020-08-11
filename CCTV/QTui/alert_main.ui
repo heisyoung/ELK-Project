@@ -138,7 +138,7 @@
     <property name="title">
      <string>Option</string>
     </property>
-    <addaction name="menu_ES_Server"/>
+    <addaction name="menu_es_server"/>
    </widget>
    <widget class="QMenu" name="menu_info">
     <property name="title">
@@ -169,7 +169,7 @@
     <string>Disable</string>
    </property>
   </action>
-  <action name="menu_ES_Server">
+  <action name="menu_es_server">
    <property name="text">
     <string>ES Server</string>
    </property>

@@ -62,7 +62,7 @@
     <string>PORT :</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton">
+  <widget class="QPushButton" name="okbtn">
    <property name="geometry">
     <rect>
      <x>210</x>
