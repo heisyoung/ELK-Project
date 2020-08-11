@@ -1,12 +1,13 @@
+import sys
+import datetime
+import winsound
 from PyQt5.QtWidgets import *
 from PyQt5 import uic
 from PyQt5.QtCore import *
 from elasticsearch import Elasticsearch
-import sys
-import winsound
-import datetime
 
-class alert_popup(QDialog):
+
+class Alert(QDialog):
     # 경고창
     def __init__(self,parent):
         super().__init__()
@@ -15,69 +16,72 @@ class alert_popup(QDialog):
         self.textBrowser.setPlainText(alert_text)
         winsound.Beep(2000,1000)
 
-class function(QThread):
+class ESping(QThread):
     # ES 상태 확인
     def __init__(self,parent):
         super().__init__()
         self.es = Elasticsearch(hosts=parent.ES_SERVER_IP, port=parent.ES_SERVER_PORT)
+
     def run(self):
         self.ES_STATUS = self.es.ping()
 
-class menu_option(QDialog):
+class OptionMenu(QDialog):
     # 메뉴-옵션창
     def __init__(self,parent):
         super().__init__()
         uic.loadUi("QTui/alert_option.ui", self)
         self.setFixedSize(310, 105)
-        self.es_ip = None
-        self.es_port = None
+        self.ES_IP = parent.ES_SERVER_IP
+        self.ES_PORT = parent.ES_SERVER_PORT
         self.input_id.setText(parent.ES_SERVER_IP)
         self.input_port.setText(parent.ES_SERVER_PORT)
-        self.pushButton.clicked.connect(self.confirm)
+        self.okbtn.clicked.connect(self.confirm)
+
     def confirm(self):
-        self.es_ip = self.input_id.text()
-        self.es_port = self.input_port.text()
+        self.ES_IP = self.input_id.text()
+        self.ES_PORT = self.input_port.text()
         self.close()
 
-class menu_help(QDialog):
+class HelpMenu(QDialog):
     # 메뉴-도움말
     pass
-class menu_about(QDialog):
+
+class AboutMenu(QDialog):
     # 메뉴-정보창
     pass
 
-class logview(QDialog):
+class LogTable(QDialog):
     # 로그 테이블
     def __init__(self,parent):
         super().__init__(parent)
         uic.loadUi("QTui/log_table.ui",self)
-        self.refresh.clicked.connect(self.searchAPI)
+        self.refresh.clicked.connect(self.search_es)
         self.combo_box_options = ["Unknown", "False Positive", "Person"]
         self.index=parent.index
         self.es = parent.es
-        self.searchAPI()
+        self.search_es()
         self.show()
 
-    def searchAPI(self):
+    def search_es(self):
         body = {"query": {"match_all": {}}, "size": 10, "sort": {"@timestamp": "desc"}}
         res= self.es.search(index=self.index,body=body)
         count = res['hits']['total']['value']
         if count >= 10:
             count = 10
-        d=[]
-        l=[]
-        o=[]
+        timestamp=[]
+        location=[]
+        objects=[]
         for i in range(count):
-            d.append(res['hits']['hits'][i]['_source']['motion_detect'])
-            l.append(res['hits']['hits'][i]['_source']['location'])
-            o.append(res['hits']['hits'][i]['_source']['object'])
+            timestamp.append(res['hits']['hits'][i]['_source']['motion_detect'])
+            location.append(res['hits']['hits'][i]['_source']['location'])
+            objects.append(res['hits']['hits'][i]['_source']['object'])
 
         for index in range(count):
-            item1 = QTableWidgetItem(l[index])
+            item1 = QTableWidgetItem(location[index])
             self.tableWidget.setItem(index, 0, item1)
-            item2 = QTableWidgetItem(d[index])
+            item2 = QTableWidgetItem(timestamp[index])
             self.tableWidget.setItem(index, 1, item2)
-            item3 = QTableWidgetItem(o[index])
+            item3 = QTableWidgetItem(objects[index])
             self.tableWidget.setItem(index, 2, item3)
             combo = QComboBox()
             button = QPushButton("Save")
@@ -86,11 +90,11 @@ class logview(QDialog):
             self.tableWidget.setCellWidget(index, 3, combo)
             self.tableWidget.setCellWidget(index, 4, button)
             self.tableWidget.resizeColumnsToContents()
-            button.clicked.connect(self.updateES)
+            button.clicked.connect(self.update_es)
         now = datetime.datetime.now().strftime("%y-%m-%d %H:%M:%S")
-        self.label.setText("UPDATE "+now)
+        self.update_time.setText("UPDATE "+now)
 
-    def updateES(self):
+    def update_es(self):
         buttonClicked = self.sender()
         index = self.tableWidget.indexAt(buttonClicked.pos())
         value = self.tableWidget.item(index.row(),1).text()
@@ -100,13 +104,13 @@ class logview(QDialog):
         widget = self.tableWidget.cellWidget(index.row(), 3)
         current_value = widget.currentText()
         self.es.update(index=self.index, id=docID, body={"doc":{"object" : current_value}})
-        self.searchAPI()
+        self.search_es()
 
 
 
 ################### 메인 클래스 #####################
 
-class alert_main(QMainWindow):
+class Main(QMainWindow):
     def __init__(self):
         super().__init__()
         uic.loadUi("QTui/alert_main.ui", self)
@@ -117,57 +121,60 @@ class alert_main(QMainWindow):
         self.ES_SERVER_PORT = "9200"
         self.index ="cctv"
         self.status = False
-        self.optionES = menu_option(self)
-        self.alert_enable.triggered.connect(self.alertEnable)
-        self.alert_disable.triggered.connect(self.alertDisable)
-        self.menu_ES_Server.triggered.connect(self.option_ES)
+        self.option_es = OptionMenu(self)
+        self.alert_enable.triggered.connect(self.Alert_Enable)
+        self.alert_disable.triggered.connect(self.Alert_Disable)
+        self.menu_es_server.triggered.connect(self.exec_option)
         self.log_table.clicked.connect(self.view)
         self.show()
 
-    def Refresh(self):
-        self.refresh = QTimer(self)
-        self.refresh.start(5000)
-        self.refresh.timeout.connect(self.searchES)
+    def refresh(self):
+        self.timer = QTimer(self)
+        self.timer.start(5000)
+        self.timer.timeout.connect(self.search_es)
 
-    def option_ES(self):
-        self.optionES.exec_()
+    def exec_option(self):
+        self.option_es.exec_()
+
+
     def view(self):
-        if self.status is True:
-            logview(self)
+        if self.status:
+            LogTable(self)
         else:
             QMessageBox.about(self, "정보", "ES 서버상태를 확인해주세요.")
 
-    def alertEnable(self):
-        self.ES_SERVER_IP = self.optionES.es_ip
-        self.ES_SERVER_PORT = self.optionES.es_port
+    def Alert_Enable(self):
+        self.ES_SERVER_IP = self.option_es.ES_IP
+        self.ES_SERVER_PORT = self.option_es.ES_PORT
         self.status_alert_d.setText("enable")
         self.alert_enable.setEnabled(False)
         self.alert_disable.setEnabled(True)
 
-        self.function = function(self)
-        self.function.start()
-        self.Refresh()
+        self.es_ping = ESping(self)
+        self.es_ping.start()
+        self.refresh()
 
-    def alertDisable(self):
+    def Alert_Disable(self):
         self.status_alert_d.setText("disable")
+        self.status_es_d.setText("disable")
         self.alert_enable.setEnabled(True)
         self.alert_disable.setEnabled(False)
         self.status = False
-        self.refresh.stop()
+        self.timer.stop()
 
-    def searchES(self):
-        self.ES_SERVER_IP = self.optionES.es_ip
-        self.ES_SERVER_PORT = self.optionES.es_port
+    def search_es(self):
+        self.ES_SERVER_IP = self.option_es.ES_IP
+        self.ES_SERVER_PORT = self.option_es.ES_PORT
 
         try:
-            self.ES_STATUS = self.function.ES_STATUS
+            self.ES_STATUS = self.es_ping.ES_STATUS
         except:
             self.status_es_d.setText("disable")
-            QMessageBox.about(self,"ES Server","  연결 실패      ")
-            return self.alertDisable()
+            QMessageBox.about(self,"ES Server","  연결 실패[1]      ")
+            return self.Alert_Disable()
 
-        self.function = function(self)
-        self.function.start()
+        self.es_ping = ESping(self)
+        self.es_ping.start()
         self.es = Elasticsearch(hosts=self.ES_SERVER_IP,port=self.ES_SERVER_PORT)
         body = {"query": {"match_all": {}},"size": 1,"sort": {"@timestamp": "desc"}}
 
@@ -181,16 +188,15 @@ class alert_main(QMainWindow):
             self.timestamp_new = result['hits']['hits'][0]['_source']['motion_detect']
             if self.timestamp_old != self.timestamp_new:
                 self.timestamp_old = self.timestamp_new
-                popup = alert_popup(self)
-                popup.exec_()
+                alert = Alert(self)
+                alert.exec_()
         except:
             self.status_es_d.setText("disable")
-            QMessageBox.about(self, "ES Server", "  연결 실패      ")
-            return self.alertDisable()
+            QMessageBox.about(self, "ES Server", "  연결 실패[2]      ")
+            return self.Alert_Disable()
         self.status = True
-
 
 if __name__ == "__main__":
     app=QApplication(sys.argv)
-    alert=alert_main()
+    main=Main()
     sys.exit(app.exec_())
