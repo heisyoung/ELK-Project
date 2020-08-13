@@ -11,22 +11,19 @@ os.makedirs('video', exist_ok=True)
 form_class = uic.loadUiType("QTui\main.ui")[0]
 
 
-class setting(QDialog):
+class CCTVsetting(QDialog):
     def __init__(self,parent):
         super().__init__()
         uic.loadUi("QTui\setting.ui",self)
         self.setting_lat = ""
         self.setting_lon = ""
-        self.setting_location = ""
+        self.setting_location = None
         self.input_lat.setText(parent.lat)
         self.input_lon.setText(parent.lon)
         self.input_location.setText(parent.location)
         self.test.clicked.connect(self.confirm)
-
         self.senser.valueChanged.connect(self.getHorizontalInfo)
 
-    def showHorizontalSliderValue(self) :
-        self.lbl_horizontal.setText(str(self.senser.value()))
 
     def getHorizontalInfo(self) :
         print("Now : " + str(self.senser.value()))
@@ -35,27 +32,19 @@ class setting(QDialog):
         self.setting_location = self.input_location.text()
         self.setting_lat = self.input_lat.text()
         self.setting_lon = self.input_lon.text()
-        self.cg_senser = self.senser.value()
+        self.setting_senser = self.senser.value()
         self.close()
 
-
-class thread1(QThread):
-    def __init__(self):
-        super().__init__()
-    def run(self):
-        pass
-
-class MyWindow(QMainWindow, form_class):
+class CCTVMain(QMainWindow, form_class):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
         self.logsav, self.switch, self.rec = False, False, False
         self.video = None
-        self.font = cv2.FONT_ITALIC
-        self.location = "fds"
-        self.lat = "fds"
-        self.lon = "fsdf"
-        self.cg = setting(self)
+        self.location = "default"
+        self.lat = "0"
+        self.lon = "0"
+        self.CCTVsetting = CCTVsetting(self)
         self.senser = 0
         self.count = 600
         self.fps=30
@@ -63,34 +52,36 @@ class MyWindow(QMainWindow, form_class):
 
         self.action_setting.triggered.connect(self.settingFunction)
 
-
-
-
     def start(self):
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.nextframe)
-        self.timer.start(1000/self.fps)
+
+        self.location = self.CCTVsetting.setting_location
+        if self.location is None:
+            QMessageBox.about(self, "정보", "위치를 입력해주세요.")
+            return self.settingFunction()
+        print("1")
 
         try:
-            self.location = self.cg.setting_location
-            print(self.location)                        # 값이 안나옴(자료형은 str)
             self.cpt = cv2.VideoCapture(0)
-            _,self.img_o = self.cpt.read()
-            self.img_o = cv2.cvtColor(self.img_o,cv2.COLOR_RGB2GRAY)
-            print("try test")                           # except문으로 안가짐
+            _, self.img_o = self.cpt.read()
+            self.img_o = cv2.cvtColor(self.img_o, cv2.COLOR_RGB2GRAY)
         except:
-            print("try except")
-            self.error()
-
-
-
-    def error(self):
-        self.imgLabel.setPixmap(QPixmap.fromImage(QImage('end.jpg')))
-        self.timer.stop()
+            QMessageBox.about(self, "정보", "카메라를 확인해주세요.")
+            return
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.nextframe)
+        self.timer.start(1000 / self.fps)
+        self.wait = True
+        self.record = True
+        self.record2 = True
+        self.logswitch = True
+        print("됨")
 
     def stop(self):
-        self.imgLabel.setPixmap(QPixmap.fromImage(QImage('end.jpg')))
+        self.mainvideo.release()
+        self.video.release()
+        self.imgLabel.setPixmap(QPixmap.fromImage(QImage()))
         self.timer.stop()
+        self.comparetimer.stop()
 
     def nextframe(self):
         _,self.cam = self.cpt.read()
@@ -103,69 +94,83 @@ class MyWindow(QMainWindow, form_class):
         pix=QPixmap.fromImage(img)
         self.imgLabel.setPixmap(pix)
 
+        if self.record2 == True :
+            self.record2 = False
+            logdate = datetime.datetime.now().strftime("%y-%m-%d_%H%M%S")
+            self.mainvideo = cv2.VideoWriter("video\MainVideo_" + logdate + ".mp4", self.fourcc, 20,
+                                         (self.cam.shape[1], self.cam.shape[0]))
+        self.cam = cv2.cvtColor(self.cam,cv2.COLOR_BGR2RGB)
+        if self.record == False :
+            self.video.write(self.cam)
+        self.mainvideo.write(self.cam)
     def settingFunction(self):
-        #self.setting = thread1()
-        #self.setting.start()
-        #popup = setting(self)
-        #popup.exec_()
-        self.cg.exec_()
+        self.CCTVsetting.exec_()
 
     def compare(self,img_o,img_p):
-        self.senser = self.cg.cg_senser
+
+        self.senser = self.CCTVsetting.setting_senser
         err = np.sum((img_o.astype("float") - img_p.astype("float")) ** 2)
         err /= float(img_o.shape[0] * img_p.shape[1])
-
         if (err>=self.senser):
+            self.moveing = True
             self.mklog()
-            self.count = 0
             logdate = datetime.datetime.now().strftime("%y-%m-%d %H:%M:%S")
             print(logdate)
             print("감지")
-        if (err<self.senser):
-            self.count += 1
-            self.logsav  = False
-            if (self.count > self.senser):
-                self.mklog()
-                self.count = 0
-            else :
-                self.count -= 0
 
-        if (self.count > self.senser):
-            self.rec = False
-        if self.rec == True:
-            self.video.write(self.cam)
-        if (self.rec == False) & (self.count > self.senser):
-            if self.video != None:
-                self.video.release()
-                self.video = None
-                #센서는 sensor
+        if (err<self.senser):
+            self.moveing = False
+            if self.wait == True :
+                self.wait = False
+                self.logsav = False
+                self.comparetimer = QTimer()
+                self.comparetimer.timeout.connect(self.mklog)
+                self.comparetimer.start(1000*3)
 
     def mklog(self):
+        print("3초마다")
+        self.wait = True
         date = datetime.datetime.utcnow().isoformat()
-        logdate = datetime.datetime.now().strftime("%y-%m-%d_%H%M%S")
-
-        self.lat = self.cg.setting_lat
-        self.lon = self.cg.setting_lon
-
+        self.lat = self.CCTVsetting.setting_lat
+        self.lon = self.CCTVsetting.setting_lon
         print(self.lat)
-
         if (self.logsav == False) & (self.count > self.senser):
-            print("Test")
-            self.logsav, self.switch, self.rec = True, True, True
+            self.logsav, self.rec = True, True
+            if self.logswitch == True :
+                self.logswitch = False
+                log = open('log\detect.log', 'a')
+                log.write(self.location + " " + self.lat + " " + self.lon + " " + date + "-\n")
+                log.close()
+                self.switchtimer = QTimer()
+                self.switchtimer.timeout.connect(self.logswich)
+                self.switchtimer.start(1000 * 3)
+
+
+            if self.moveing == True :
+                self.writevideo()
+
+    def logswich(self):
+        if self.logswitch == False:
+            self.logswitch = True
+            self.mklog()
+    def writevideo(self):
+        if self.record == True :
+            self.record = False
+            logdate = datetime.datetime.now().strftime("%y-%m-%d_%H%M%S")
             self.video = cv2.VideoWriter("video\Video_" + logdate + ".mp4", self.fourcc, 20,
                                          (self.cam.shape[1], self.cam.shape[0]))
+            self.videotimer = QTimer()
+            self.videotimer.timeout.connect(self.stopvideos)
+            self.videotimer.start(1000*3)
 
-            log = open('log\detect.log', 'a')
 
-            log.write(self.location + " " + self.lat + " " + self.lon + " " + date + "-\n")
-
-            log.close()
-            print("움직임 감지 : 로그 저장")
-
+    def stopvideos(self):
+        self.record = True
+        if self.record == True :
+            self.video.release()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    myWindow = MyWindow()
-    myWindow.show()
-    #app.exec_()
+    CCTVMain = CCTVMain()
+    CCTVMain.show()
     sys.exit(app.exec_())
