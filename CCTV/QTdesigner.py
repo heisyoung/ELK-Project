@@ -1,173 +1,149 @@
+import os
+import sys
+import threading
+import datetime
+import numpy as np
+import cv2
 from PyQt5.QtWidgets import *
 from PyQt5 import uic
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-import cv2, datetime, sys
-import numpy as np
-import os
 
 os.makedirs('log', exist_ok=True)
-os.makedirs('video', exist_ok=True)
-form_class = uic.loadUiType("QTui\main.ui")[0]
-
+os.makedirs('video/event', exist_ok=True)
 
 class CCTVsetting(QDialog):
     def __init__(self,parent):
         super().__init__()
         uic.loadUi("QTui\setting.ui",self)
-        self.setting_lat = ""
-        self.setting_lon = ""
-        self.setting_location = None
+        self.set_lat = None
+        self.set_lon = None
+        self.set_location = None
         self.input_lat.setText(parent.lat)
         self.input_lon.setText(parent.lon)
         self.input_location.setText(parent.location)
-        self.test.clicked.connect(self.confirm)
-        self.senser.valueChanged.connect(self.getHorizontalInfo)
-
-
-    def getHorizontalInfo(self) :
-        print("Now : " + str(self.senser.value()))
+        self.save.clicked.connect(self.confirm)
 
     def confirm(self):
-        self.setting_location = self.input_location.text()
-        self.setting_lat = self.input_lat.text()
-        self.setting_lon = self.input_lon.text()
-        self.setting_senser = self.senser.value()
+        self.set_location = self.input_location.text()
+        self.set_lat = self.input_lat.text()
+        self.set_lon = self.input_lon.text()
+        self.set_sensor = self.sensor.value()
         self.close()
 
-class CCTVMain(QMainWindow, form_class):
+class CCTVMain(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setupUi(self)
-        self.logsav, self.switch, self.rec = False, False, False
+        uic.loadUi("QTui\main.ui",self)
         self.video = None
-        self.location = "default"
-        self.lat = "0"
-        self.lon = "0"
+        self.location = "location"
+        self.lat = None
+        self.lon = None
         self.CCTVsetting = CCTVsetting(self)
-        self.senser = 0
-        self.count = 600
-        self.fps=30
+        self.sensor = 10
+        self.fps=60
+        self.count = 0
         self.fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-
-        self.action_setting.triggered.connect(self.settingFunction)
+        self.action_setting.triggered.connect(self.exec_setting)
 
     def start(self):
-
-        self.location = self.CCTVsetting.setting_location
+        self.location = self.CCTVsetting.set_location
         if self.location is None:
             QMessageBox.about(self, "정보", "위치를 입력해주세요.")
-            return self.settingFunction()
-        print("1")
+            return self.exec_setting()
 
         try:
-            self.cpt = cv2.VideoCapture(0)
-            _, self.img_o = self.cpt.read()
+            self.setCamera = cv2.VideoCapture('https://192.168.0.120:4343/video')
+            _, self.img_o = self.setCamera.read()
             self.img_o = cv2.cvtColor(self.img_o, cv2.COLOR_RGB2GRAY)
         except:
             QMessageBox.about(self, "정보", "카메라를 확인해주세요.")
             return
+
+        self.main_record = True
+        self.event_record = False
+        self.event_switch = False
+        self.event_status = False
+
         self.timer = QTimer()
         self.timer.timeout.connect(self.nextframe)
         self.timer.start(1000 / self.fps)
-        self.wait = True
-        self.record = True
-        self.record2 = True
-        self.logswitch = True
-        print("됨")
+
 
     def stop(self):
-        self.mainvideo.release()
-        self.video.release()
+        self.main_video.release()
+        self.setCamera.release()
         self.imgLabel.setPixmap(QPixmap.fromImage(QImage()))
         self.timer.stop()
-        self.comparetimer.stop()
 
     def nextframe(self):
-        _,self.cam = self.cpt.read()
+        _,self.cam = self.setCamera.read()
         self.cam = cv2.cvtColor(self.cam,cv2.COLOR_BGR2RGB)
         self.img_p = cv2.cvtColor(self.cam,cv2.COLOR_RGB2GRAY)
-        self.compare(self.img_o,self.img_p)
+        self.write_main()
+        self.compare()
         self.img_o= self.img_p.copy()
-
         img= QImage(self.cam,self.cam.shape[1],self.cam.shape[0],QImage.Format_RGB888)
         pix=QPixmap.fromImage(img)
         self.imgLabel.setPixmap(pix)
 
-        if self.record2 == True :
-            self.record2 = False
+    def write_main(self):
+        cam = cv2.cvtColor(self.cam, cv2.COLOR_BGR2RGB)
+        if self.main_record == True:
+            self.main_record = False
             logdate = datetime.datetime.now().strftime("%y-%m-%d_%H%M%S")
-            self.mainvideo = cv2.VideoWriter("video\MainVideo_" + logdate + ".mp4", self.fourcc, 20,
+            self.main_video = cv2.VideoWriter("video\MainVideo_" + logdate + ".mp4", self.fourcc, 20,
                                          (self.cam.shape[1], self.cam.shape[0]))
-        self.cam = cv2.cvtColor(self.cam,cv2.COLOR_BGR2RGB)
-        if self.record == False :
-            self.video.write(self.cam)
-        self.mainvideo.write(self.cam)
-    def settingFunction(self):
-        self.CCTVsetting.exec_()
+        if self.main_record == False:
+            self.main_video.write(cam)
 
-    def compare(self,img_o,img_p):
+    def write_event(self):
+        self.cam_rec = cv2.cvtColor(self.cam, cv2.COLOR_BGR2RGB)
+        if (self.event_record == True) & (self.event_switch == False):
+            self.event_record = False
+            self.event_switch = True
+            self.event_status = True
+            logdate = datetime.datetime.now().strftime("%y-%m-%d_%H%M%S")
+            self.write_log()
+            self.event_video = cv2.VideoWriter("video\event\EventVideo_" + logdate + ".mp4", self.fourcc, 20,
+                                         (self.cam.shape[1], self.cam.shape[0]))
+        if self.event_switch == True:
+            self.event_video.write(self.cam_rec)
 
-        self.senser = self.CCTVsetting.setting_senser
-        err = np.sum((img_o.astype("float") - img_p.astype("float")) ** 2)
-        err /= float(img_o.shape[0] * img_p.shape[1])
-        if (err>=self.senser):
-            self.moveing = True
-            self.mklog()
-            logdate = datetime.datetime.now().strftime("%y-%m-%d %H:%M:%S")
-            print(logdate)
-            print("감지")
-
-        if (err<self.senser):
-            self.moveing = False
-            if self.wait == True :
-                self.wait = False
-                self.logsav = False
-                self.comparetimer = QTimer()
-                self.comparetimer.timeout.connect(self.mklog)
-                self.comparetimer.start(1000*3)
-
-    def mklog(self):
-        print("3초마다")
-        self.wait = True
+    def write_log(self):
         date = datetime.datetime.utcnow().isoformat()
-        self.lat = self.CCTVsetting.setting_lat
-        self.lon = self.CCTVsetting.setting_lon
-        print(self.lat)
-        if (self.logsav == False) & (self.count > self.senser):
-            self.logsav, self.rec = True, True
-            if self.logswitch == True :
-                self.logswitch = False
-                log = open('log\detect.log', 'a')
-                log.write(self.location + " " + self.lat + " " + self.lon + " " + date + "-\n")
-                log.close()
-                self.switchtimer = QTimer()
-                self.switchtimer.timeout.connect(self.logswich)
-                self.switchtimer.start(1000 * 3)
+        self.lat = self.CCTVsetting.set_lat
+        self.lon = self.CCTVsetting.set_lon
+        log = open('log\detect.log', 'a')
+        log.write(self.location + " " + self.lat + " " + self.lon + " " + date + " -\n")
+        log.close()
 
+    def compare(self):
+        self.sensor = self.CCTVsetting.set_sensor
+        value = np.sum((self.img_o.astype("float") - self.img_p.astype("float")) ** 2)
+        value /= float(self.img_o.shape[0] * self.img_p.shape[1])
+        if (value>=self.sensor):
+            self.event_record = True
+            self.count = 0
+        if (value<self.sensor):
+            self.event_record = False
+            if self.event_status == True:
+                self.event_status = False
+                self.event_timer()
+        self.write_event()
 
-            if self.moveing == True :
-                self.writevideo()
+    def event_timer(self):
+        timer = threading.Timer(1, self.event_timer)
+        timer.start()
+        print(self.count)
+        self.count += 1
+        if self.count > 5:
+            timer.cancel()
+            self.event_video.release()
+            self.event_switch = False
 
-    def logswich(self):
-        if self.logswitch == False:
-            self.logswitch = True
-            self.mklog()
-    def writevideo(self):
-        if self.record == True :
-            self.record = False
-            logdate = datetime.datetime.now().strftime("%y-%m-%d_%H%M%S")
-            self.video = cv2.VideoWriter("video\Video_" + logdate + ".mp4", self.fourcc, 20,
-                                         (self.cam.shape[1], self.cam.shape[0]))
-            self.videotimer = QTimer()
-            self.videotimer.timeout.connect(self.stopvideos)
-            self.videotimer.start(1000*3)
-
-
-    def stopvideos(self):
-        self.record = True
-        if self.record == True :
-            self.video.release()
+    def exec_setting(self):
+        self.CCTVsetting.exec_()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
