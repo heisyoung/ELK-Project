@@ -9,20 +9,20 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>252</width>
-    <height>290</height>
+    <width>242</width>
+    <height>242</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>CCTV_setting</string>
+   <string>CCTV Option</string>
   </property>
   <widget class="QLineEdit" name="input_location">
    <property name="geometry">
     <rect>
      <x>100</x>
-     <y>20</y>
+     <y>30</y>
      <width>121</width>
-     <height>31</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>
@@ -32,7 +32,7 @@
      <x>100</x>
      <y>70</y>
      <width>121</width>
-     <height>31</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>
@@ -40,9 +40,9 @@
    <property name="geometry">
     <rect>
      <x>100</x>
-     <y>120</y>
+     <y>110</y>
      <width>121</width>
-     <height>31</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>
@@ -52,7 +52,7 @@
      <x>20</x>
      <y>30</y>
      <width>56</width>
-     <height>12</height>
+     <height>21</height>
     </rect>
    </property>
    <property name="text">
@@ -63,9 +63,9 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>80</y>
+     <y>72</y>
      <width>56</width>
-     <height>12</height>
+     <height>20</height>
     </rect>
    </property>
    <property name="text">
@@ -76,9 +76,9 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>130</y>
+     <y>110</y>
      <width>56</width>
-     <height>12</height>
+     <height>21</height>
     </rect>
    </property>
    <property name="text">
@@ -88,23 +88,23 @@
   <widget class="QPushButton" name="save">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>240</y>
-     <width>75</width>
-     <height>23</height>
+     <x>80</x>
+     <y>200</y>
+     <width>81</width>
+     <height>31</height>
     </rect>
    </property>
    <property name="text">
     <string>Save</string>
    </property>
   </widget>
-  <widget class="QSlider" name="senser">
+  <widget class="QSlider" name="sensor">
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>200</y>
-     <width>161</width>
-     <height>31</height>
+     <y>170</y>
+     <width>171</width>
+     <height>21</height>
     </rect>
    </property>
    <property name="toolTipDuration">
@@ -133,7 +133,7 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>180</y>
+     <y>150</y>
      <width>56</width>
      <height>12</height>
     </rect>
@@ -142,13 +142,13 @@
     <string>Sensor</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_5">
+  <widget class="QLabel" name="sensor_value">
    <property name="geometry">
     <rect>
-     <x>190</x>
-     <y>210</y>
+     <x>200</x>
+     <y>170</y>
      <width>31</width>
-     <height>16</height>
+     <height>20</height>
     </rect>
    </property>
    <property name="text">
