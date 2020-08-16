@@ -25,6 +25,7 @@ class ESping(QThread):
     def run(self):
         self.ES_STATUS = self.es.ping()
 
+
 class OptionMenu(QDialog):
     # 메뉴-옵션창
     def __init__(self,parent):
@@ -175,7 +176,7 @@ class Main(QMainWindow):
 
         self.es_ping = ESping(self)
         self.es_ping.start()
-        self.es = Elasticsearch(hosts=self.ES_SERVER_IP,port=self.ES_SERVER_PORT)
+        self.es = Elasticsearch(hosts=self.ES_SERVER_IP,port=self.ES_SERVER_PORT,http_auth=('elastic', 'changeme'))
         body = {"query": {"match_all": {}},"size": 1,"sort": {"@timestamp": "desc"}}
 
         try:
