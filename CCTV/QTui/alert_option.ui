@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>310</width>
-    <height>105</height>
+    <width>308</width>
+    <height>153</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>ES SERVER Setting</string>
   </property>
-  <widget class="QLineEdit" name="input_id">
+  <widget class="QLineEdit" name="input_ip">
    <property name="geometry">
     <rect>
      <x>50</x>
@@ -36,7 +36,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QLabel" name="label_id">
+  <widget class="QLabel" name="label_ip">
    <property name="geometry">
     <rect>
      <x>20</x>
@@ -65,14 +65,66 @@
   <widget class="QPushButton" name="okbtn">
    <property name="geometry">
     <rect>
-     <x>210</x>
-     <y>70</y>
-     <width>81</width>
-     <height>23</height>
+     <x>220</x>
+     <y>102</y>
+     <width>71</width>
+     <height>31</height>
     </rect>
    </property>
    <property name="text">
     <string>확인</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="input_id">
+   <property name="geometry">
+    <rect>
+     <x>50</x>
+     <y>70</y>
+     <width>113</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="input_pw">
+   <property name="geometry">
+    <rect>
+     <x>50</x>
+     <y>110</y>
+     <width>113</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="echoMode">
+    <enum>QLineEdit::Password</enum>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_id">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>70</y>
+     <width>31</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>ID :</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_pw">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>110</y>
+     <width>31</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>PW :</string>
    </property>
   </widget>
  </widget>

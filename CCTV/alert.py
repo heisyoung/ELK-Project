@@ -31,16 +31,18 @@ class OptionMenu(QDialog):
     def __init__(self,parent):
         super().__init__()
         uic.loadUi("QTui/alert_option.ui", self)
-        self.setFixedSize(310, 105)
+        self.setFixedSize(310, 153)
         self.ES_IP = parent.ES_SERVER_IP
         self.ES_PORT = parent.ES_SERVER_PORT
-        self.input_id.setText(parent.ES_SERVER_IP)
+        self.input_ip.setText(parent.ES_SERVER_IP)
         self.input_port.setText(parent.ES_SERVER_PORT)
         self.okbtn.clicked.connect(self.confirm)
 
     def confirm(self):
-        self.ES_IP = self.input_id.text()
+        self.ES_IP = self.input_ip.text()
         self.ES_PORT = self.input_port.text()
+        self.es_id = self.input_id.text()
+        self.es_pw = self.input_pw.text()
         self.close()
 
 class HelpMenu(QDialog):
@@ -118,6 +120,8 @@ class Main(QMainWindow):
         self.setFixedSize(314, 218)
         self.timestamp_old = None
         self.timestamp_new = None
+        self.es_server_id = None
+        self.es_server_pw = None
         self.ES_SERVER_IP = "127.0.0.1"
         self.ES_SERVER_PORT = "9200"
         self.index ="cctv"
@@ -166,6 +170,8 @@ class Main(QMainWindow):
     def search_es(self):
         self.ES_SERVER_IP = self.option_es.ES_IP
         self.ES_SERVER_PORT = self.option_es.ES_PORT
+        self.es_server_id = self.option_es.es_id
+        self.es_server_pw = self.option_es.es_pw
 
         try:
             self.ES_STATUS = self.es_ping.ES_STATUS
@@ -176,7 +182,7 @@ class Main(QMainWindow):
 
         self.es_ping = ESping(self)
         self.es_ping.start()
-        self.es = Elasticsearch(hosts=self.ES_SERVER_IP,port=self.ES_SERVER_PORT,http_auth=('elastic', 'changeme'))
+        self.es = Elasticsearch(hosts=self.ES_SERVER_IP,port=self.ES_SERVER_PORT,http_auth=(self.es_server_id, self.es_server_pw))
         body = {"query": {"match_all": {}},"size": 1,"sort": {"@timestamp": "desc"}}
 
         try:
