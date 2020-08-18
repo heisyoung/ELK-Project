@@ -1,9 +1,9 @@
-#ELK 세팅
+# ELK 세팅
 프로젝트에 사용된 버전은 7.8이며, 도커 컴포즈를 사용하여 구축했다.
-####Elastic Search
+#### Elastic Search
 1. X-Pack trial 30일 사용
 2. 아이디, 패스워드 초기값 그대로 설정
-####Logstash
+#### Logstash
 1. pipline/logstash.conf 파일을 수정한다.
 
 
@@ -41,7 +41,7 @@
 >filter : 로그파일의 내용을 공백으로 구분하여 추출 및 매핑하며, 필요없는 필드는 삭제한다. 위치정보는 새롭게 필드를 추가하고, float 타입으로 변환한다.
 >
 >output : ES의 IP/PORT 정보와 인덱스를 설정한다. stdout은 디버그용
-####Kibana
+#### Kibana
 1. Dev tools를 사용하여 인덱스 템플릿을 생성한다.
 
 
@@ -64,7 +64,7 @@
         }
     }
 >매핑을 안해주면 위치정보가 텍스트 타입으로 지정된다.
-####Filebeat
+#### Filebeat
 1. filebeat.yml 파일을 수정한다.
 2. 수정 후 filebeat.exe -c .\filebeat.yml -e -v 명령어로 파일비트 실행한다.(윈도우 기준)
 
