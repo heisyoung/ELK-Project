@@ -101,7 +101,7 @@ class LogTable(QDialog):
         buttonClicked = self.sender()
         index = self.tableWidget.indexAt(buttonClicked.pos())
         value = self.tableWidget.item(index.row(),1).text()
-        body = {"query": {"match": {"motion_detect" : value}}}
+        body = {"query": {"match": {"detect_motion" : value}}}
         result = self.es.search(index=self.index, body=body)
         docID = result['hits']['hits'][0]['_id']
         widget = self.tableWidget.cellWidget(index.row(), 3)
