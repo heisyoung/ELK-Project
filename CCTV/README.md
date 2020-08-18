@@ -6,4 +6,4 @@
 4. 관리자는 Kibana Dashboard에 시작화된 로그 데이터를 보면서 모니터링이 가능합니다.
 
 ### 세팅 방법
-[ELK 세팅](https://github.com/heisyoung/ELK-Project/blob/master/CCTV/ELK%20%EC%84%B8%ED%8C%85.md)
+1. [ELK 세팅](https://github.com/heisyoung/ELK-Project/blob/master/CCTV/ELK%20%EC%84%B8%ED%8C%85.md)
