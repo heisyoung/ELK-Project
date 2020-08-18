@@ -1,4 +1,4 @@
-##ELK 세팅
+#ELK 세팅
 프로젝트에 사용된 버전은 7.8이며, 도커 컴포즈를 사용하여 구축했다.
 ####Elastic Search
 1. X-Pack trial 30일 사용
