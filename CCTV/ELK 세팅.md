@@ -6,6 +6,7 @@
 #### Logstash
 1. pipline/logstash.conf 파일을 수정한다.
 
+```console
 
     input {
 	    beats {
@@ -36,6 +37,7 @@
             codec => rubydebug { }
         }
     }
+```
 >input : 파일비트로 로그파일을 불러온다.
 >
 >filter : 로그파일의 내용을 공백으로 구분하여 추출 및 매핑하며, 필요없는 필드는 삭제한다. 위치정보는 새롭게 필드를 추가하고, float 타입으로 변환한다.
