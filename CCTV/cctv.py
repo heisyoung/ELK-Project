@@ -8,6 +8,8 @@ from PyQt5.QtWidgets import *
 from PyQt5 import uic
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+from flask_opencv_streamer.streamer import Streamer
+from flask import request,Flask
 
 os.makedirs('log', exist_ok=True)
 os.makedirs('video/event', exist_ok=True)
@@ -76,6 +78,10 @@ class CCTVMain(QMainWindow):
         self.timer.timeout.connect(self.nextframe)
         self.timer.start(1000 / self.fps)
 
+        port = 3030
+        require_login = False
+        self.streamer = Streamer(port, require_login)
+
     def stop(self):
         self.main_video.release()
         self.setCamera.release()
@@ -84,8 +90,12 @@ class CCTVMain(QMainWindow):
 
     def nextframe(self):
         _,self.cam = self.setCamera.read()
+        self.streamer.update_frame(self.cam)
+        if not self.streamer.is_streaming:
+            self.streamer.start_streaming()
         self.cam = cv2.cvtColor(self.cam,cv2.COLOR_BGR2RGB)
         self.img_p = cv2.cvtColor(self.cam,cv2.COLOR_RGB2GRAY)
+
         self.write_main()
         self.compare()
         self.img_o= self.img_p.copy()
@@ -151,6 +161,7 @@ class CCTVMain(QMainWindow):
         self.CCTVOption.exec_()
 
 if __name__ == "__main__":
+
     app = QApplication(sys.argv)
     CCTVMain = CCTVMain()
     CCTVMain.show()
