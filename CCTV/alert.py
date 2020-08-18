@@ -75,7 +75,7 @@ class LogTable(QDialog):
         location=[]
         objects=[]
         for i in range(count):
-            timestamp.append(res['hits']['hits'][i]['_source']['motion_detect'])
+            timestamp.append(res['hits']['hits'][i]['_source']['detect_motion'])
             location.append(res['hits']['hits'][i]['_source']['location'])
             objects.append(res['hits']['hits'][i]['_source']['object'])
 
@@ -191,8 +191,8 @@ class Main(QMainWindow):
             self.location = result['hits']['hits'][0]['_source']['location']
 
             if self.timestamp_old is None:
-                self.timestamp_old = result['hits']['hits'][0]['_source']['motion_detect']
-            self.timestamp_new = result['hits']['hits'][0]['_source']['motion_detect']
+                self.timestamp_old = result['hits']['hits'][0]['_source']['detect_motion']
+            self.timestamp_new = result['hits']['hits'][0]['_source']['detect_motion']
             if self.timestamp_old != self.timestamp_new:
                 self.timestamp_old = self.timestamp_new
                 alert = Alert(self)
