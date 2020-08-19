@@ -62,7 +62,7 @@ class CCTVMain(QMainWindow):
             return self.exec_setting()
 
         try:
-            self.setCamera = cv2.VideoCapture('https://192.168.0.120:4343/video')
+            self.setCamera = cv2.VideoCapture(0)
             _, self.img_o = self.setCamera.read()
             self.img_o = cv2.cvtColor(self.img_o, cv2.COLOR_RGB2GRAY)
         except:
