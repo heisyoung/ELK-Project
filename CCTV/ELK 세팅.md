@@ -67,7 +67,7 @@ PUT _index_template/template_1
 > - 매핑을 안해주면 위치정보가 텍스트 타입으로 지정된다.
 #### Filebeat
 1. filebeat.yml 파일을 수정한다.
-2. 수정 후 filebeat.exe -c .\filebeat.yml -e -v 명령어로 파일비트 실행한다.(윈도우 기준)
+2. 수정 후 .\filebeat.exe -c .\filebeat.yml -e -v 명령어로 파일비트 실행한다.(윈도우 기준)
 
 ```
 filebeat.inputs:
@@ -91,6 +91,6 @@ output.logstash 로그스태시 부분에는 주석처리를 해제하고 로그
 processors:
 - drop_fields:
 fields: ["agent.ephemeral_id","agent.hostname","agent.id","agent.name","agent.type","agent.version","ecs.version","input.type","log.file.path","tags","log.offset"]
-drop_fields로 필요없는 필드를 모두 제거한다.
+#drop_fields로 필요없는 필드를 모두 제거한다.
 ```
 > - 파이썬 프로그램이 윈도우로 실행되고 로그를 남기기 때문에 파일비트는 윈도우 버전으로 사용했다.
