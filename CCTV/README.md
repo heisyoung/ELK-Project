@@ -7,3 +7,4 @@
 
 ### 세팅 방법
 1. [ELK 세팅](https://github.com/heisyoung/ELK-Project/blob/master/CCTV/ELK%20%EC%84%B8%ED%8C%85.md)
+2. [프로그램 실행](https://github.com/heisyoung/ELK-Project/blob/master/CCTV/%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%A8%20%EC%84%B8%ED%8C%85.md)
