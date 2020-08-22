@@ -61,6 +61,7 @@ PUT _index_template/template_1
                     }
             }
 	}
+    }
 }
 ```
 > - 매핑을 안해주면 위치정보가 텍스트 타입으로 지정된다.
