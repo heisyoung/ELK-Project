@@ -9,7 +9,6 @@ from PyQt5 import uic
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from flask_opencv_streamer.streamer import Streamer
-from flask import request,Flask
 
 os.makedirs('log', exist_ok=True)
 os.makedirs('video/event', exist_ok=True)
